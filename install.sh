@@ -4,9 +4,9 @@ set -euo pipefail
 # =============================
 # Config
 # =============================
-APP_NAME="lumiTest"
-SERVICE_NAME="lumiTest.service"
-APP_USER="lumi"
+APP_NAME="bloodray"
+SERVICE_NAME="bloodray.service"
+APP_USER="bloodray"
 APP_HOME="/home/${APP_USER}"
 APP_DIR="/opt/${APP_NAME}"
 LOG_DIR="/var/log/${APP_NAME}"
@@ -127,14 +127,14 @@ SERVICE_PATH="${USER_SYSTEMD_DIR}/${SERVICE_NAME}"
 echo "=== Writing user service to ${SERVICE_PATH} ==="
 cat > "${SERVICE_PATH}" << 'UNIT'
 [Unit]
-Description=lumiTest GUI (local display, user session)
+Description=Bloodray GUI (local display, user session)
 # Start with the user's graphical session. Works for Wayland or X11.
 After=graphical-session.target
 
 [Service]
 Type=simple
-WorkingDirectory=/opt/lumiTest
-ExecStart=/opt/lumiTest/venv/bin/python /opt/lumiTest/run.py
+WorkingDirectory=/opt/bloodray
+ExecStart=/opt/bloodray/venv/bin/python /opt/bloodray/run.py
 Restart=on-failure
 RestartSec=2
 

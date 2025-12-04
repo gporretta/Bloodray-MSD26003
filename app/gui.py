@@ -22,8 +22,8 @@ from app.camera import CameraReader
 from app.db import init_db, save_run  # DB split: external module
 
 # --- Robust-threshold tunables ---
-GUARD_ABS = 0.10      # absolute guard band (brightness units)
-GUARD_SIGMA = 3.0     # multiplier on baseline std dev
+GUARD_ABS = 0.05      # absolute guard band (brightness units)
+GUARD_SIGMA = 2.5     # multiplier on baseline std dev
 
 
 class TestApp:
@@ -816,60 +816,60 @@ class TestApp:
                 self.metrics["effective_threshold"] = float(self.effective_threshold)
 
         # --- (2) Early abort if baseline is too bright (still disabled as before) ---
-        thr_check = self.dynamic_threshold
-        if (thr_check is not None) and (thr_check >= 1.0):
-            # Finalize timing + max brightness
-            with self._lock:
-                self.metrics["total_end"] = time.perf_counter()
-                self.metrics["max_brightness"] = float(getattr(self.camera, "max_light", 0.0))
+        #thr_check = self.dynamic_threshold
+        #if (thr_check is not None) and (thr_check >= 1.0):
+        #    # Finalize timing + max brightness
+        #    with self._lock:
+        #        self.metrics["total_end"] = time.perf_counter()
+        #        self.metrics["max_brightness"] = float(getattr(self.camera, "max_light", 0.0))
 
-            # Compute effective threshold + guard band for logging
-            eff_thr = self.effective_threshold if (self.effective_threshold is not None) else self.dynamic_threshold
-            guard_val = None
-            if (self.effective_threshold is not None) and (self.dynamic_threshold is not None):
-                guard_val = float(self.effective_threshold - self.dynamic_threshold)
-                self.metrics["guard_band"] = guard_val
-                self.metrics["effective_threshold"] = eff_thr
+        #    # Compute effective threshold + guard band for logging
+        #    eff_thr = self.effective_threshold if (self.effective_threshold is not None) else self.dynamic_threshold
+        #    guard_val = None
+        #    if (self.effective_threshold is not None) and (self.dynamic_threshold is not None):
+        #        guard_val = float(self.effective_threshold - self.dynamic_threshold)
+        #        self.metrics["guard_band"] = guard_val
+        #        self.metrics["effective_threshold"] = eff_thr
 
-            # Persist the aborted run, but don't let DB errors kill the GUI
-            try:
-                # New signature (with guard/eff_thr)
-                save_run(
-                    timestamp_id=timestamp_id,
-                    status="ABORTED_SEAL_WARNING",
-                    metrics=self.metrics,
-                    dynamic_threshold=self.dynamic_threshold,
-                    guard=guard_val,
-                    eff_thr=eff_thr,
-                )
-            except TypeError:
-                # Backwards-compat: older save_run without guard/eff_thr
-                save_run(
-                    timestamp_id=timestamp_id,
-                    status="ABORTED_SEAL_WARNING",
-                    metrics=self.metrics,
-                    dynamic_threshold=self.dynamic_threshold,
-                )
-            except Exception as e:
-                # Log to stderr but keep UI alive
-                print("Error in save_run during ABORTED_SEAL_WARNING:", repr(e), file=sys.stderr)
+        #    # Persist the aborted run, but don't let DB errors kill the GUI
+        #    try:
+        #        # New signature (with guard/eff_thr)
+        #        save_run(
+        #            timestamp_id=timestamp_id,
+        #            status="ABORTED_SEAL_WARNING",
+        #            metrics=self.metrics,
+        #            dynamic_threshold=self.dynamic_threshold,
+        #            guard=guard_val,
+        #            eff_thr=eff_thr,
+        #        )
+        #    except TypeError:
+        #        # Backwards-compat: older save_run without guard/eff_thr
+        #        save_run(
+        #            timestamp_id=timestamp_id,
+        #            status="ABORTED_SEAL_WARNING",
+        #            metrics=self.metrics,
+        #            dynamic_threshold=self.dynamic_threshold,
+        #        )
+        #    except Exception as e:
+        #        # Log to stderr but keep UI alive
+        #        print("Error in save_run during ABORTED_SEAL_WARNING:", repr(e), file=sys.stderr)
+        
+        #    # Clean up camera
+        #    try:
+        #        self.camera.stop()
+        #    except Exception:
+        #        pass
+        #    try:
+        #        self.camera.close_camera()
+        #    except Exception:
+        #        pass
 
-            # Clean up camera
-            try:
-                self.camera.stop()
-            except Exception:
-                pass
-            try:
-                self.camera.close_camera()
-            except Exception:
-                pass
-
-            # Show the yellow "seal box" screen on the Tk thread
-            self.root.after(0, self.show_seal_warning_screen)
-            return
+        #    # Show the yellow "seal box" screen on the Tk thread
+        #    self.root.after(0, self.show_seal_warning_screen)
+        #    return
 
         # --- (3) Post-baseline: concurrent mist / rotation / camera ---
-        mist_duration_s = 3.0
+        mist_duration_s = 2.0
         rotation_revs = 1.0  # 1 full 360° rotation; adjust as needed
         extra_analysis_s = max(2.0, float(ROTATIONS) * float(ROTATION_DELAY_S))
 
