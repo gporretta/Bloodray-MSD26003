@@ -22,8 +22,8 @@ from app.camera import CameraReader
 from app.db import init_db, save_run  # DB split: external module
 
 # --- Robust-threshold tunables ---
-GUARD_ABS = 0.05      # absolute guard band (brightness units)
-GUARD_SIGMA = 2.5     # multiplier on baseline std dev
+GUARD_ABS = 0.10      # absolute guard band (brightness units)
+GUARD_SIGMA = 3.0     # multiplier on baseline std dev
 
 
 class TestApp:
